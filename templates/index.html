@@ -112,7 +112,7 @@
                     resources managers to quickly estimate how far sediment can be transported downstream under
                     predefined hydraulic conditions. The model assumes sediment density of 2650 kg/m³.
                 </li>
-                <li>Two ML models (Kolmogorov-Arnold Networks (KAN) and Random Forest (RF)) were trained based on
+                <li>Random Forest (RF)) were trained based on
                     41,600 process-based simulations. The trained models can provide fast prediction on probability
                     density function of sediment settling distance. Detailed data and analyses supporting the 
                     hydraulic calculations can be found in Sun et al. (2024) and Xu et al. (2025).
@@ -125,14 +125,15 @@
                 <ul>
                     <li>Users input particle diameter and two key hydraulic parameters: 
                         <ul>
-                            <li>Mean flow velocity (must be within 0.1–1 m/s)</li>
+                            <li>Water velocity (must be within 0.1–1 m/s)</li>
                             <li>Water depth (must be within 0.5–10 m)</li>
+							<li>Diameter (must be within 0.00001–0.020 m)</li>
                         </ul>
                     </li>
                     <li>These parameter ranges are derived from data collected across 49 reaches within 21 streams and rivers in Missouri, United States.</li>
                     <li>Model output:</li>
                     <ul>
-                        <li>A plot for the best log-normal probability density function (PDF) of sediment settling distance predicted by two ML models</li>
+                        <li>A plot for the best log-normal probability density function (PDF) of sediment settling distance predicted by RF</li>
                         <li>The model-computed μ and σ for the log-normal distribution. Median settling distance and variance are also given.</li>
                     </ul>
                 </ul>
@@ -140,7 +141,7 @@
                 <ul>
                     <li>Users only need to input the hydraulic parameters:
                         <ul>
-                            <li>Mean flow velocity (must be within 0.1–1 m/s)</li>
+                            <li>Water velocity (must be within 0.1–1 m/s)</li>
                             <li>Water depth (must be within 0.5–10 m)</li>
                         </ul>
                     </li>
@@ -160,14 +161,14 @@
                     <option value="multiple" {% if mode == "multiple" %}selected{% endif %}>Multiple Particles</option>
                 </select><br><br>
 
-                <label for="velocity">Water Velocity (m/s):</label>
+                <label for="velocity">Water Velocity (m/s): (must be within 0.1–1 m/s)</label>
                 <input type="text" name="feature1" id="velocity" value="{{ velocity }}" required>
 
-                <label for="water_depth">Water Depth (m):</label>
+                <label for="water_depth">Water Depth (m): (must be within 0.5–10 m)</label>
                 <input type="text" name="feature2" id="water_depth" value="{{ water_depth }}" required>
 
                 <div id="diameter-field" style="display: {% if mode == 'multiple' %}none{% else %}block{% endif %};">
-                    <label for="diameter">Diameter (m):</label>
+                    <label for="diameter">Diameter (m): (must be within 0.00001–0.020 m)</label>
                     <input type="text" name="feature3" id="diameter" value="{{ diameter }}">
                 </div>
 
@@ -191,6 +192,7 @@
 
         <!-- Right Section: Plot -->
         <div class="plot-container">
+			<h2>Output result</h2>
             {% if plot_url %}
             <img src="{{ plot_url }}" alt="Generated Plot">
             {% else %}
