@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Sediment settling calculator (online)</title>
+    <style>
+        /* Styling for the main container */
+        .container {
+            display: flex;
+            align-items: flex-start; /* Align all sections to the top */
+            justify-content: space-between;
+            margin-top: 0; /* Remove unnecessary top margin */
+        }
+
+        /* Left Section: About This Tool */
+        .left-section {
+            flex: 1; /* Ensure equal height with other sections */
+            padding: 20px;
+            border: 2px solid black;
+            border-radius: 10px;
+            margin-right: 20px; /* Add spacing between sections */
+            background-color: #f9f9f9;
+        }
+
+        /* Middle Section: Form */
+        .prediction-form {
+            flex: 1; /* Ensure equal height with other sections */
+            padding: 20px;
+            border: 2px solid black;
+            border-radius: 10px;
+            margin-right: 20px; /* Add spacing between sections */
+            background-color: #f9f9f9;
+            display: flex;
+            flex-direction: column; /* Stack form and logo vertically */
+            justify-content: flex-start; /* Align items at the top */
+        }
+
+        /* Logo inside the form */
+        .logo-container {
+            margin-top: 20px; /* Add spacing above the logo */
+            text-align: center; /* Center the logo */
+        }
+
+        .logo-container img {
+            width: 180px; /* Adjust logo size */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        /* Campus image below the form */
+        .campus-container {
+            text-align: center; /* Center the campus image */
+            margin-top: 20px; /* Add spacing above the campus image */
+        }
+
+        .campus-container img {
+            width: 100%; /* Make the campus image full width */
+            max-width: 400px; /* Set a maximum width */
+            height: auto; /* Maintain aspect ratio */
+        }
+
+        /* Right Section: Plot */
+        .plot-container {
+            flex: 2; /* Allow the plot section to be wider */
+            padding: 20px;
+            border: 2px solid black;
+            border-radius: 10px;
+            background-color: #fff;
+        }
+
+        .plot-container img {
+            width: 100%; /* Plot spans full width */
+            height: auto; /* Maintain aspect ratio */
+            display: block; /* Remove extra inline space */
+        }
+
+        /* General Heading Styling */
+        h2 {
+            margin-top: 0;
+        }
+
+        /* Styling for input fields */
+        input[type="text"] {
+            width: 100%; /* Full width input fields */
+            padding: 5px;
+            margin-bottom: 10px;
+            box-sizing: border-box;
+        }
+
+        /* Styling for labels */
+        label {
+            font-weight: bold;
+            display: block; /* Ensure labels are above inputs */
+            margin-bottom: 5px;
+        }
+
+        /* General font styling */
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+        }
+    </style>
+</head>
+<body>
+    <!-- Main Container -->
+    <div class="container">
+        <!-- Left Section: About This Tool -->
+        <div class="left-section">
+            <h2>Sediment settling calculator</h2>
+            <p><b>Applicable condition:</b></p>
+            <ul>
+                <li>This machine learning (ML)-enabled sediment settling calculator provides a tool for 
+                    resources managers to quickly estimate how far sediment can be transported downstream under
+                    predefined hydraulic conditions. The model assumes sediment density of 2650 kg/m³.
+                </li>
+                <li>Two ML models (Kolmogorov-Arnold Networks (KAN) and Random Forest (RF)) were trained based on
+                    41,600 process-based simulations. The trained models can provide fast prediction on probability
+                    density function of sediment settling distance. Detailed data and analyses supporting the 
+                    hydraulic calculations can be found in Sun et al. (2024) and Xu et al. (2025).
+                </li>
+            </ul>
+            <p><b>Instruction:</b></p>
+            <ul>
+                <li>This calculator can be used for two scenarios:</li>
+                <li><b>Scenario #1:</b> Settling of a single particle</li>
+                <ul>
+                    <li>Users input particle diameter and two key hydraulic parameters: 
+                        <ul>
+                            <li>Mean flow velocity (must be within 0.1–1 m/s)</li>
+                            <li>Water depth (must be within 0.5–10 m)</li>
+                        </ul>
+                    </li>
+                    <li>These parameter ranges are derived from data collected across 49 reaches within 21 streams and rivers in Missouri, United States.</li>
+                    <li>Model output:</li>
+                    <ul>
+                        <li>A plot for the best log-normal probability density function (PDF) of sediment settling distance predicted by two ML models</li>
+                        <li>The model-computed μ and σ for the log-normal distribution. Median settling distance and variance are also given.</li>
+                    </ul>
+                </ul>
+                <li><b>Scenario #2:</b> Settling of multiple particles</li>
+                <ul>
+                    <li>Users only need to input the hydraulic parameters:
+                        <ul>
+                            <li>Mean flow velocity (must be within 0.1–1 m/s)</li>
+                            <li>Water depth (must be within 0.5–10 m)</li>
+                        </ul>
+                    </li>
+                    <li>The particle diameters are a fixed size range (0.01–20 mm with a median diameter of d₅₀=1.5 mm, log-normal distribution).</li>
+                    <li>Similar to Scenario #1, the model will output the PDF and the predicted distribution parameter μ and σ, as well as median and variance of sediment settling distance.</li>
+                </ul>
+            </ul>
+        </div>
+
+        <!-- Middle Section: Form -->
+        <div class="prediction-form">
+            <h2>User input</h2>
+            <form action="/" method="post">
+                <label for="mode">Select Mode:</label>
+                <select name="mode" id="mode" onchange="updateFormFields()" required>
+                    <option value="single" {% if mode == "single" %}selected{% endif %}>Single Particle</option>
+                    <option value="multiple" {% if mode == "multiple" %}selected{% endif %}>Multiple Particles</option>
+                </select><br><br>
+
+                <label for="velocity">Water Velocity (m/s):</label>
+                <input type="text" name="feature1" id="velocity" value="{{ velocity }}" required>
+
+                <label for="water_depth">Water Depth (m):</label>
+                <input type="text" name="feature2" id="water_depth" value="{{ water_depth }}" required>
+
+                <div id="diameter-field" style="display: {% if mode == 'multiple' %}none{% else %}block{% endif %};">
+                    <label for="diameter">Diameter (m):</label>
+                    <input type="text" name="feature3" id="diameter" value="{{ diameter }}">
+                </div>
+
+                <input type="submit" value="Predict and Show Plot">
+            </form>
+
+            <!-- Mizzou Logo inside the form -->
+            <div class="logo-container">
+                <img src="{{ url_for('static', filename='images/mizzou_logo.png') }}" alt="Mizzou Logo">
+            </div>
+
+            <!-- Scenario1 image below the form -->
+            <div class="campus-container">
+                <img src="{{ url_for('static', filename='images/Scenario1.png') }}" alt="Scenario1">
+            </div>
+			<!-- Scenario2 image below the form -->
+            <div class="campus-container">
+                <img src="{{ url_for('static', filename='images/Scenario2.png') }}" alt="Scenario2">
+            </div>
+        </div>
+
+        <!-- Right Section: Plot -->
+        <div class="plot-container">
+            {% if plot_url %}
+            <img src="{{ plot_url }}" alt="Generated Plot">
+            {% else %}
+            <p>No plot available. Please submit values to generate the plot.</p>
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Log-normal Prediction</title>
+    <style>
+        /* Styling for the logo, introduction, and title */
+        .header-container {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .header-container img {
+            width: 200px; /* Adjust size as needed */
+            margin-right: 15px;
+        }
+        .intro {
+            font-size: 2em;
+            font-weight: bold;
+            margin-left: auto;
+            margin-right: auto;
+            text-align: center;
+        }
+
+        /* Title styling */
+        h1 {
+            font-size: 1.5em; /* Reduce font size */
+            text-align: left; /* Align title to the left */
+            margin-left: 20px; /* Add some left margin for alignment */
+            margin-bottom: 40px; /* Add bottom margin for spacing */
+        }
+
+        /* Main container styling */
+        .container {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-top: -20px;
+            margin-left: -20px;
+        }
+        
+        /* Styling for the left section */
+        .left-section {
+            width: 300px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        
+        .left-section h3 {
+            margin-top: 20px;
+        }
+
+        .left-section label {
+            font-weight: bold;
+        }
+
+        .left-section input[type="text"] {
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        /* Styling for the plot container */
+        .plot-container {
+            width: 1200px;
+            height: 900px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            margin-top: -30px;
+            margin-left: -30px;
+        }
+
+        .plot-container img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+    <script>
+        function updateFormFields() {
+            const mode = document.getElementById("mode").value;
+            const diameterField = document.getElementById("diameter-field");
+
+            if (mode === "single") {
+                diameterField.style.display = "block";
+            } else {
+                diameterField.style.display = "none";
+            }
+        }
+    </script>
+</head>
+<body>
+
+    <!-- Header section with logo and introduction -->
+    <div class="header-container">
+        <img src="{{ url_for('static', filename='images/mizzou_logo.png') }}" alt="Mizzou Logo">
+        <div class="intro">
+            This model can help Missouri users quickly predict the location and extent of particle deposition.
+        </div>
+    </div>
+
+    <!-- Left-aligned title with added margin for spacing -->
+    <h1>Enter Values for Prediction</h1>
+
+	<div class="container">
+		<!-- New introduction section (moved to the left) -->
+		<div class="left-section" style="flex: 1; padding: 20px; border: 2px solid black; border-radius: 10px; margin: 20px;">
+			<h2 style="font-size: 24px;">About This Tool</h2>
+			<p>
+				This tool is developed to help Missouri users predict the deposition of sediment particles based on input parameters
+				like water velocity, water depth, and particle diameter. Using state-of-the-art machine learning models, the tool provides 
+				accurate predictions and visualizes the probability distribution of sediment transport.
+			</p>
+			<p>
+				Explore how variations in flow conditions and particle properties influence sediment behavior. The results are derived 
+				using the KAN and RF algorithms for model analysis.
+			</p>
+			<p>
+				<b>Applicable condition</b>: 
+			</p>
+			<p>
+				Single particle: water velocity ranging from 0.1 to 1 m /s
+			</p>
+			<p>
+				Single particle: water depth from 0.5 to 10 m
+			</p>
+			<p>
+				Single particle: diameters ranging from 0.01 to 20 mm
+			</p>
+			<p>
+				Mutiple particles: following a lognormal distribution diameters ranging from 0.01 to 20 mm
+			</p>
+			<p>
+				<b>User guide</b>: 
+			</p>
+			<p>	
+				Step 1: Input the water velocity, water depth, and diameter in the left box;			
+			</p>
+			<p>	
+				Step 2: Click the predict and show plot;
+			</p>
+		</div>
+
+		<!-- Enter Values for Prediction Section (moved to the middle) -->
+		<div class="prediction-form" style="flex: 1; padding: 20px; border: 1px solid #ccc; border-radius: 8px; background-color: #f9f9f9; margin: 20px;">
+			<h1 style="font-size: 24px;">Enter Values for Prediction</h1>
+			<form action="/" method="post">
+				<label for="mode">Select Mode:</label>
+				<select name="mode" id="mode" onchange="updateFormFields()" required>
+					<option value="single" {% if mode == "single" %}selected{% endif %}>Single Particle</option>
+					<option value="multiple" {% if mode == "multiple" %}selected{% endif %}>Multiple Particles</option>
+				</select><br><br>
+
+				<label for="velocity">Water Velocity (m/s):</label>
+				<input type="text" name="feature1" id="velocity" value="{{ velocity }}" required>
+
+				<label for="water_depth">Water Depth (m):</label>
+				<input type="text" name="feature2" id="water_depth" value="{{ water_depth }}" required>
+
+				<div id="diameter-field" style="display: {% if mode == 'multiple' %}none{% else %}block{% endif %};">
+					<label for="diameter">Diameter (m):</label>
+					<input type="text" name="feature3" id="diameter" value="{{ diameter }}">
+				</div>
+
+				<input type="submit" value="Predict and Show Plot">
+			</form>
+			
+			{% if calculated_values %}
+			<div class="calculated-results">
+				<h3>Calculated Values:</h3>
+				<label for="shear_velocity">Shear Velocity (m/s):</label>
+				<input type="text" id="shear_velocity" value="{{ calculated_values.shear_velocity }}" readonly>
+				
+				<label for="settling_velocity">Settling Velocity (m/s):</label>
+				<input type="text" id="settling_velocity" value="{{ calculated_values.settling_velocity }}" readonly>
+				
+				<label for="ro_value">Rouse number:</label>
+				<input type="text" id="ro_value" value="{{ calculated_values.Ro }}" readonly>
+			</div>
+			{% endif %}
+		</div>
+
+		<!-- Right section with plot display area -->
+		<div class="plot-container" style="flex: 2; padding: 20px; border: 2px solid black; border-radius: 10px; margin: 20px;">
+			{% if plot_url %}
+			<img src="{{ plot_url }}" alt="Generated Plot" style="width: 100%; height: auto;">
+			{% else %}
+			<p>No plot available. Please submit values to generate the plot.</p>
+			{% endif %}
+		</div>
+	</div>
+
+
+	
+</body>
+</html>

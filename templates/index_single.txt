@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Log-normal Prediction</title>
+    <style>
+        .container {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+        }
+        
+        .left-section {
+            width: 300px;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            background-color: #f9f9f9;
+        }
+        
+        .left-section h3 {
+            margin-top: 20px;
+        }
+
+        .left-section label {
+            font-weight: bold;
+        }
+
+        .left-section input[type="text"] {
+            width: 100%;
+            margin-bottom: 20px;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        .plot-container {
+            width: 1200px;
+            height: 900px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .plot-container img {
+            max-width: 100%;
+            max-height: 100%;
+        }
+    </style>
+    <script>
+        function updateFormFields() {
+            const mode = document.getElementById("mode").value;
+            const diameterField = document.getElementById("diameter-field");
+
+            if (mode === "single") {
+                diameterField.style.display = "block";
+            } else {
+                diameterField.style.display = "none";
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Enter Values for Prediction</h1>
+    <div class="container">
+        <!-- Left section with form and calculated values -->
+        <div class="left-section">
+            <form action="/" method="post">
+                <!-- Mode selection dropdown -->
+                <label for="mode">Select Mode:</label>
+                <select name="mode" id="mode" onchange="updateFormFields()" required>
+                    <option value="single" {% if mode == "single" %}selected{% endif %}>Single Particle</option>
+                    <option value="multiple" {% if mode == "multiple" %}selected{% endif %}>Multiple Particles</option>
+                </select><br><br>
+
+                <!-- Common input fields -->
+                <label for="velocity">Velocity:</label>
+                <input type="text" name="feature1" id="velocity" value="{{ velocity }}" required>
+
+                <label for="water_depth">Water Depth:</label>
+                <input type="text" name="feature2" id="water_depth" value="{{ water_depth }}" required>
+
+                <!-- Diameter field for single particle mode only -->
+                <div id="diameter-field" style="display: {% if mode == 'multiple' %}none{% else %}block{% endif %};">
+                    <label for="diameter">Diameter:</label>
+                    <input type="text" name="feature3" id="diameter" value="{{ diameter }}">
+                </div>
+
+                <input type="submit" value="Predict and Show Plot">
+            </form>
+            
+            <!-- Display calculated values as read-only fields -->
+            {% if calculated_values %}
+            <div class="calculated-results">
+                <h3>Calculated Values:</h3>
+                <label for="shear_velocity">Shear Velocity:</label>
+                <input type="text" id="shear_velocity" value="{{ calculated_values.shear_velocity }}" readonly>
+                
+                <label for="settling_velocity">Settling Velocity:</label>
+                <input type="text" id="settling_velocity" value="{{ calculated_values.settling_velocity }}" readonly>
+                
+                <label for="ro_value">Ro:</label>
+                <input type="text" id="ro_value" value="{{ calculated_values.Ro }}" readonly>
+            </div>
+            {% endif %}
+        </div>
+        
+        <!-- Right section with plot display area -->
+        <div class="plot-container">
+            {% if plot_url %}
+            <img src="{{ plot_url }}" alt="Generated Plot">
+            {% endif %}
+        </div>
+    </div>
+</body>
+</html>
