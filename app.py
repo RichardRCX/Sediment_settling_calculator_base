@@ -1,3 +1,4 @@
+# Import necessary modules
 from flask import Flask, render_template, request, url_for
 import numpy as np
 import joblib
@@ -37,7 +38,6 @@ plt.rcParams['xtick.labelsize'] = FS
 plt.rcParams['ytick.labelsize'] = FS
 plt.rcParams['figure.dpi'] = 500
 
-
 def calculate_sediment_properties(velocity, water_depth, diameter):
     Um = (m + 1) / m * velocity
     shear_velocity = Um * kappa / m
@@ -50,7 +50,6 @@ def calculate_sediment_properties(velocity, water_depth, diameter):
     if Ro < 2.5:
         return shear_velocity, settling_velocity, Ro, False
     return shear_velocity, settling_velocity, Ro, True
-
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -73,11 +72,28 @@ def index():
         except ValueError:
             return "Please enter valid numeric values."
 
+        # Check if parameters are within the valid range
+        if (velocity is None or velocity < 0.1 or velocity > 1.0 or
+            water_depth is None or water_depth < 0.5 or water_depth > 10.0 or
+            diameter is None or diameter < 0.00001 or diameter > 0.02):
+            suspension_message = "parameters outside the range! No output plot."
+            # Create a simple plot to indicate parameter error
+            plt.figure(figsize=(8, 6))
+            plt.text(0.5, 0.5, suspension_message, fontsize=FS, ha='center', va='center')
+            plt.axis('off')
+            plot_filename = 'parameter_error_plot.png'
+            plt.savefig(f'static/{plot_filename}')
+            plt.close()
+            return render_template("index.html", plot_url=url_for('static', filename=plot_filename),
+                                   calculated_values=None, mode=mode, velocity=velocity,
+                                   water_depth=water_depth, diameter=diameter,
+                                   suspension_message=suspension_message)
+
         if mode == "single" and velocity and water_depth and diameter:
             shear_velocity, settling_velocity, Ro, valid = calculate_sediment_properties(velocity, water_depth,
                                                                                          diameter)
             if not valid:
-                suspension_message = "No results in this condition"
+                suspension_message = "particles are suspended! No output plot."
                 # Create a simple plot to indicate suspension
                 plt.figure(figsize=(8, 6))
                 plt.text(0.5, 0.5, suspension_message, fontsize=FS, ha='center', va='center')
@@ -160,7 +176,6 @@ def index():
 
     return render_template("index.html", plot_url=None, mode=mode, velocity=None, water_depth=None, diameter=None,
                            suspension_message=None)
-
 
 if __name__ == "__main__":
     app.run(debug=True)
