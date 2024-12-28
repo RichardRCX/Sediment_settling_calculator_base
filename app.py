@@ -112,7 +112,7 @@ def index():
             predict_features_scaled = single_scaler.transform(predict_features)
             predict_features_imputed = SimpleImputer(strategy='mean').fit_transform(predict_features_scaled)
             rf_predictions = single_rf_model.predict(predict_features_imputed)
-
+            rf_predictions[:, 1]=rf_predictions[:, 1]**2
             # Plot
             scale_rf, shape_rf = np.log(rf_predictions[:, 0]), np.sqrt(
                 np.log(1 + (rf_predictions[:, 1] / rf_predictions[:, 0]) ** 2))
