@@ -112,7 +112,7 @@ def index():
             predict_features_scaled = single_scaler.transform(predict_features)
             predict_features_imputed = SimpleImputer(strategy='mean').fit_transform(predict_features_scaled)
             rf_predictions = single_rf_model.predict(predict_features_imputed)
-            rf_predictions[:, 1]=rf_predictions[:, 1]**2
+            
             # Plot
             scale_rf, shape_rf = np.log(rf_predictions[:, 0]), np.sqrt(
                 np.log(1 + (rf_predictions[:, 1] / rf_predictions[:, 0]) ** 2))
@@ -120,7 +120,7 @@ def index():
             x = np.linspace(0.01, lognorm(scale=scale_rf, s=shape_rf).ppf(0.9999), 1000)
             x2 = np.exp(x)
             plt.plot(x2, lognorm.pdf(x, s=shape_rf, scale=scale_rf) / 3, 'g--', lw=2, label='lognorm_RF')
-
+            rf_predictions[:, 1]=rf_predictions[:, 1]**2
             plt.text(
                 0.9, 0.75,
                 f'$\mu$ (RF): {scale_rf[0]:.3f}\n$\sigma$ (RF): {shape_rf[0]:.3f}\n'
@@ -152,7 +152,7 @@ def index():
                             lognorm(scale=scale_rf, s=shape_rf).ppf(0.95), 1000)
             x2 = np.exp(x)
             plt.plot(x2, lognorm.pdf(x, s=shape_rf, scale=scale_rf) / 3, 'g--', lw=2, label='lognorm_RF')
-
+            rf_predictions[:, 1]=rf_predictions[:, 1]**2
             plt.text(
                 0.9, 0.75,
                 f'$\mu$ (RF): {scale_rf[0]:.3f}\n$\sigma$ (RF): {shape_rf[0]:.3f}\n'
